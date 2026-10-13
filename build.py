@@ -242,6 +242,7 @@ def main():
     data = {
         "generatedAt": datetime.now().astimezone().isoformat(timespec="seconds"),
         "home": str(Path.home()),
+        "toolDir": str(HERE),
         "meddesRoot": MEDDES_ROOT,
         "sessions": sessions,
     }
