@@ -21,7 +21,7 @@
   --baseline:       #c3c2b7;
   --text-primary:   #0b0b0b;
   --text-secondary: #52514e;
-  --text-muted:     #898781;
+  --text-muted:     #6b6964;
   --series-1:       #2a78d6;
   --series-1-hover: #1c5cab;
   --accent-wash:    #eaf2fc;
@@ -55,7 +55,7 @@
     --baseline:       #383835;
     --text-primary:   #ffffff;
     --text-secondary: #c3c2b7;
-    --text-muted:     #898781;
+    --text-muted:     #a3a19b;
     --series-1:       #3987e5;
     --series-1-hover: #6da7ec;
     --accent-wash:    #1b2a3d;
@@ -89,7 +89,7 @@
   --baseline:       #383835;
   --text-primary:   #ffffff;
   --text-secondary: #c3c2b7;
-  --text-muted:     #898781;
+  --text-muted:     #a3a19b;
   --series-1:       #3987e5;
   --series-1-hover: #6da7ec;
   --accent-wash:    #1b2a3d;
@@ -120,6 +120,7 @@ body { margin: 0; }
   background: var(--page);
   color: var(--text-primary);
   font: 14px/1.5 system-ui, -apple-system, "PingFang SC", "Segoe UI", sans-serif;
+  font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
   padding: 28px 32px 64px;
 }
@@ -133,9 +134,9 @@ header { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .logo {
   width: 28px; height: 28px; border-radius: 8px; flex: none;
   background: var(--text-primary); color: var(--surface-1);
-  display: grid; place-items: center; font-weight: 700; font-size: 15px;
+  display: grid; place-items: center; font-weight: 700; font-size: 14px;
 }
-h1 { font-size: 18px; margin: 0; font-weight: 650; letter-spacing: -.01em; }
+h1 { font-size: 16px; margin: 0; font-weight: 650; letter-spacing: -.01em; }
 .meta { color: var(--text-muted); font-size: 12px; }
 header .spacer { flex: 1; }
 .live-pill {
@@ -150,7 +151,7 @@ header .spacer { flex: 1; }
 @media (prefers-reduced-motion: reduce) { .dot.busy { animation: none; } * { transition: none !important; } }
 
 .stale {
-  margin-top: 14px; padding: 8px 14px; border-radius: 8px; font-size: 13px;
+  margin-top: 14px; padding: 8px 14px; border-radius: 8px; font-size: 12px;
   background: var(--warning-wash); color: var(--warning-ink); display: flex; gap: 8px; align-items: center;
 }
 
@@ -170,7 +171,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
 .seg button:hover { background: transparent; color: var(--text-primary); }
 .seg button[aria-pressed="true"] { background: var(--surface-1); color: var(--text-primary); box-shadow: 0 1px 2px rgba(0,0,0,.08), 0 0 0 1px var(--border); font-weight: 500; }
 .search { position: relative; }
-.search input { padding: 5px 34px 5px 12px; width: 300px; }
+.search input { padding: 6px 34px 6px 12px; width: 380px; }
 .search kbd {
   position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
   font: 11px ui-monospace, monospace; color: var(--text-muted);
@@ -192,15 +193,15 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
 .tiles > *, .grid-3 > *, .grid-top > * { min-width: 0; }
 .tile { padding: 14px 16px; }
 .tile .label { color: var(--text-secondary); font-size: 12px; }
-.tile .value { font-size: 26px; font-weight: 650; letter-spacing: -.02em; margin-top: 2px; line-height: 1.25; }
-.tile .value small { font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-left: 2px; letter-spacing: 0; }
+.tile .value { font-size: 22px; font-weight: 650; letter-spacing: -.02em; margin-top: 2px; line-height: 1.25; }
+.tile .value small { font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-left: 2px; letter-spacing: 0; }
 .tile .sub { color: var(--text-muted); font-size: 12px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
 .grid-top { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); gap: 12px; margin-top: 12px; }
 .grid-top > .card { display: flex; flex-direction: column; }
 .chart-head { display: flex; align-items: baseline; gap: 10px; min-height: 26px; }
-.chart-head h2 { font-size: 13px; margin: 0; font-weight: 600; }
+.chart-head h2 { font-size: 14px; margin: 0; font-weight: 600; }
 .chart-head .spacer { flex: 1; }
 .chart-head button { font-size: 12px; padding: 2px 8px; }
 .chart-wrap { position: relative; margin-top: 10px; }
@@ -226,7 +227,7 @@ table.data td.num, table.data th.num { text-align: right; }
 /* 热力图 */
 .heat { display: grid; grid-template-columns: 28px repeat(24, minmax(0, 1fr)); gap: 2px; margin-top: 14px; }
 .heat .rl { font-size: 11px; color: var(--text-muted); align-self: center; }
-.heat .cl { font-size: 10px; color: var(--text-muted); text-align: center; height: 14px; }
+.heat .cl { font-size: 11px; color: var(--text-muted); text-align: center; height: 14px; }
 .heat .cell { aspect-ratio: 1 / 1.5; border-radius: 2px; background: var(--heat-0); outline: none; }
 .heat .cell:hover, .heat .cell:focus { box-shadow: 0 0 0 2px var(--text-primary); }
 .heat-legend { display: flex; align-items: center; gap: 3px; font-size: 11px; color: var(--text-muted); margin-top: 10px; }
@@ -249,7 +250,7 @@ table.data td.num, table.data th.num { text-align: right; }
 .rank-empty { color: var(--text-muted); font-size: 12px; padding: 16px 0; }
 
 /* ---------- 项目和会话列表 ---------- */
-h2.section { font-size: 13px; font-weight: 600; margin: 30px 0 10px; display: flex; gap: 10px; align-items: baseline; }
+h2.section { font-size: 14px; font-weight: 600; margin: 30px 0 10px; display: flex; gap: 10px; align-items: baseline; }
 h2.section .count { color: var(--text-muted); font-weight: 400; font-size: 12px; }
 .project { margin-bottom: 8px; overflow: hidden; }
 .project.meddes { box-shadow: inset 3px 0 0 var(--series-1); }
@@ -269,7 +270,7 @@ h2.section .count { color: var(--text-muted); font-weight: 400; font-size: 12px;
 .project .name .parent { color: var(--text-muted); font-weight: 400; }
 .badge { display: inline-block; font-size: 11px; padding: 0 6px; border-radius: 4px; background: var(--accent-wash); color: var(--accent-ink); margin-left: 8px; font-weight: 500; vertical-align: 1px; }
 .stat { color: var(--text-secondary); font-size: 12px; white-space: nowrap; }
-.stat b { color: var(--text-primary); font-weight: 600; font-size: 13px; }
+.stat b { color: var(--text-primary); font-weight: 600; font-size: 14px; }
 .live-tag { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--good-ink); font-weight: 500; white-space: nowrap; }
 
 .sessions { border-top: 1px solid var(--border); }
@@ -281,8 +282,8 @@ h2.section .count { color: var(--text-muted); font-weight: 400; font-size: 12px;
 .session:hover, .session:focus-visible { background: var(--surface-2); }
 .session .title { font-weight: 550; display: flex; align-items: center; gap: 10px; min-width: 0; }
 .session .title span.t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.session .first { color: var(--text-muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.session .facts { color: var(--text-secondary); font-size: 12px; margin-top: 3px; display: flex; gap: 14px; flex-wrap: wrap; }
+.session .first { color: var(--text-secondary); font-size: 12px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.session .facts { color: var(--text-muted); font-size: 11px; margin-top: 4px; display: flex; gap: 14px; flex-wrap: wrap; }
 .session .time { color: var(--text-secondary); font-size: 12px; white-space: nowrap; text-align: right; }
 .session .time .rel { color: var(--text-muted); display: block; }
 .copy { font-size: 12px; white-space: nowrap; }
@@ -302,16 +303,17 @@ button:disabled:hover { border-color: var(--border); background: var(--surface-1
 .del-bar {
   position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 15;
   display: flex; gap: 12px; align-items: center; padding: 10px 12px 10px 18px; border-radius: 12px;
-  background: var(--surface-1); border: 1px solid var(--border-strong); box-shadow: var(--shadow); font-size: 13px;
+  background: var(--surface-1); border: 1px solid var(--border-strong); box-shadow: var(--shadow); font-size: 14px;
   max-width: calc(100vw - 32px); flex-wrap: wrap;
 }
 .del-bar .hint { color: var(--text-muted); font-size: 12px; }
 .del-bar .primary { background: var(--critical-ink); color: #fff; border-color: var(--critical-ink); }
 .del-bar .primary:hover { background: var(--critical-ink); filter: brightness(1.1); }
 .del-bar .primary.done { background: var(--good-ink); border-color: var(--good-ink); color: #fff; }
-.empty { color: var(--text-muted); padding: 28px; text-align: center; }
+.empty { color: var(--text-secondary); padding: 28px; text-align: center; }
+.empty-tip { color: var(--text-muted); font-size: 12px; margin-top: 8px; display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; }
 mark { background: var(--mark-bg); color: inherit; border-radius: 2px; padding: 0 1px; }
-.snippet { color: var(--text-secondary); font-size: 12px; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.snippet { color: var(--text-secondary); font-size: 12px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ---------- 详情侧栏 ---------- */
 .overlay { position: fixed; inset: 0; background: var(--overlay); opacity: 0; pointer-events: none; transition: opacity .18s; z-index: 20; }
@@ -325,14 +327,14 @@ mark { background: var(--mark-bg); color: inherit; border-radius: 2px; padding: 
 .drawer.open { transform: none; }
 .drawer-head { padding: 20px 24px 14px; border-bottom: 1px solid var(--border); }
 .drawer-head .row { display: flex; gap: 12px; align-items: flex-start; }
-.drawer-head h3 { margin: 0; font-size: 17px; font-weight: 650; flex: 1; line-height: 1.35; word-break: break-word; }
+.drawer-head h3 { margin: 0; font-size: 16px; font-weight: 650; flex: 1; line-height: 1.35; word-break: break-word; }
 .drawer-head .path { color: var(--text-muted); font-size: 12px; margin-top: 4px; word-break: break-all; }
 .drawer-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; align-items: center; }
 .drawer-body { overflow-y: auto; padding: 18px 24px 40px; flex: 1; }
 .facts-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
 .facts-grid div { background: var(--surface-1); padding: 10px 12px; }
 .facts-grid dt { font-size: 11px; color: var(--text-muted); }
-.facts-grid dd { margin: 2px 0 0; font-size: 13px; font-weight: 550; word-break: break-all; }
+.facts-grid dd { margin: 2px 0 0; font-size: 14px; font-weight: 550; word-break: break-all; }
 .drawer h4 { font-size: 12px; font-weight: 600; color: var(--text-secondary); margin: 22px 0 8px; display: flex; gap: 8px; align-items: center; }
 .drawer h4 .spacer { flex: 1; }
 .tool-chips { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -342,14 +344,14 @@ mark { background: var(--mark-bg); color: inherit; border-radius: 2px; padding: 
 .files div { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; direction: rtl; text-align: left; }
 .files div bdi { direction: ltr; }
 .transcript { display: flex; flex-direction: column; gap: 10px; }
-.msg { font-size: 13px; line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
+.msg { font-size: 15px; line-height: 1.65; white-space: pre-wrap; word-break: break-word; }
 .msg.u { align-self: flex-end; max-width: 88%; background: var(--accent-wash); color: var(--text-primary); padding: 8px 12px; border-radius: 12px 12px 4px 12px; }
 .msg.a { padding: 2px 0; color: var(--text-primary); }
 .msg.t { font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--text-muted); padding-left: 10px; border-left: 2px solid var(--grid); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .msg.t b { color: var(--text-secondary); font-weight: 600; }
 .msg code { font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--surface-2); border-radius: 4px; padding: 1px 4px; }
 .msg strong { font-weight: 650; }
-.msg .md-h { font-size: 14px; }
+.msg .md-h { font-size: 16px; }
 .msg .ts { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 2px; white-space: normal; }
 .msg.u .ts { text-align: right; }
 .toggle { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; color: var(--text-secondary); font-weight: 400; cursor: pointer; }
@@ -398,6 +400,10 @@ footer code, .kbd { font: 11px ui-monospace, monospace; border: 1px solid var(--
   <div class="stale" id="stale" hidden></div>
 
   <div class="filters">
+    <div class="search">
+      <input id="search" type="search" placeholder="搜索项目、标题或对话内容" autocomplete="off" aria-label="搜索">
+      <kbd>/</kbd>
+    </div>
     <div class="seg" id="ranges" role="group" aria-label="时间范围">
       <button type="button" data-days="1">今天</button>
       <button type="button" data-days="7">7 天</button>
@@ -405,13 +411,10 @@ footer code, .kbd { font: 11px ui-monospace, monospace; border: 1px solid var(--
       <button type="button" data-days="90">90 天</button>
       <button type="button" data-days="0">全部</button>
     </div>
-    <div class="search">
-      <input id="search" type="search" placeholder="搜索项目、标题或对话内容" autocomplete="off">
-      <kbd>/</kbd>
-    </div>
     <span id="project-chip"></span>
     <span class="result-hint" id="result-hint"></span>
     <span class="spacer"></span>
+    <button type="button" id="charts-toggle" aria-expanded="true" aria-controls="charts">收起图表</button>
     <button type="button" id="mode-delete" aria-pressed="false" title="勾选多个会话，一次复制删除命令">批量删除</button>
     <label class="meta" for="sort">排序</label>
     <select id="sort">
@@ -431,6 +434,7 @@ footer code, .kbd { font: 11px ui-monospace, monospace; border: 1px solid var(--
     <div class="card tile"><div class="label">费用估算</div><div class="value" id="t-cost">–</div><div class="sub" id="t-cost-sub"></div></div>
   </div>
 
+  <div id="charts">
   <div class="grid-top">
     <div class="card pad">
       <div class="chart-head">
@@ -469,11 +473,12 @@ footer code, .kbd { font: 11px ui-monospace, monospace; border: 1px solid var(--
       <div class="rank" id="rank-models"></div>
     </div>
   </div>
+  </div>
 
   <div id="groups"></div>
 
   <footer>
-    数据来自 <code>~/.claude/projects</code> 和 <code>~/.claude/sessions</code>，只读。双击「打开Claude 会话面板.command」刷新。<br>
+    数据来自 <code>~/.claude/projects</code> 和 <code>~/.claude/sessions</code>，只读。双击「Claude 会话面板.app」刷新。<br>
     提问数、热力图、每日图表按所选时间范围统计；token、费用、工作时长按会话整体累计。费用是 Claude Code 按 API 价格记录的估算，订阅用户不会实际扣这笔钱。<br>
     只包含 Claude Code 的会话，不含 claude.ai 网页版和桌面 App 的普通聊天。快捷键：<span class="kbd">/</span> 搜索 · <span class="kbd">Esc</span> 关闭侧栏或清空搜索。
   </footer>
@@ -626,8 +631,8 @@ for (const s of DATA.sessions) {
 
 // ---------- 状态 ----------
 const saved = (() => { try { return JSON.parse(localStorage.getItem("cc-dash") || "{}"); } catch { return {}; } })();
-const state = { days: saved.days ?? 0, query: "", project: null, sort: saved.sort || "recent", picking: false, picked: new Set() };
-const persist = () => { try { localStorage.setItem("cc-dash", JSON.stringify({ days: state.days, sort: state.sort })); } catch {} };
+const state = { days: saved.days ?? 0, query: "", project: null, sort: saved.sort || "recent", picking: false, picked: new Set(), charts: saved.charts ?? true };
+const persist = () => { try { localStorage.setItem("cc-dash", JSON.stringify({ days: state.days, sort: state.sort, charts: state.charts })); } catch {} };
 
 function cutoff() {
   if (!state.days) return null;
@@ -715,7 +720,7 @@ function renderHeader() {
   if (ageMin > 30) {
     const st = $("stale");
     st.hidden = false;
-    st.textContent = `数据是 ${relTime(DATA.generatedAt)}生成的，可能不是最新。双击「打开Claude 会话面板.command」刷新。`;
+    st.textContent = `数据是 ${relTime(DATA.generatedAt)}生成的，可能不是最新。双击「Claude 会话面板.app」刷新。`;
   }
 }
 
@@ -1052,10 +1057,27 @@ function renderGroups(projects) {
     const h = el("h2", "section", title);
     h.append(el("span", "count", `${list.length} 个项目 · ${sum(list, p => p.sessions.length)} 个会话`));
     box.append(h);
-    if (!list.length) { box.append(el("div", "card empty", "这个范围内没有会话")); continue; }
+    if (!list.length) { box.append(emptyBox("这个时间范围内没有会话。")); continue; }
     for (const p of list) box.append(renderProject(p, p.isMeddes || searching));
   }
-  if (searching && !projects.length) box.append(el("div", "card empty", "没有找到匹配的会话。试试换个关键词，或把时间范围切到「全部」。"));
+  if (searching && !projects.length) box.append(emptyBox("没有找到匹配的会话。"));
+}
+// 空结果最常见的原因是时间范围太窄，所以直接给一个切到「全部」的按钮
+function emptyBox(msg) {
+  const box = el("div", "card empty");
+  box.append(el("div", null, msg));
+  const tip = el("div", "empty-tip");
+  if (state.days !== 0) {
+    tip.append(document.createTextNode("当前只看" + (state.days === 1 ? "今天" : `最近 ${state.days} 天`) + "。"));
+    const b = el("button", null, "改看全部时间");
+    b.type = "button";
+    b.addEventListener("click", () => { state.days = 0; persist(); render(); });
+    tip.append(b);
+  } else if (state.query.trim()) {
+    tip.append(document.createTextNode("已经在搜全部时间了，试试换个关键词，或者只输入其中一两个字。"));
+  }
+  if (tip.childNodes.length) box.append(tip);
+  return box;
 }
 
 // ---------- 详情侧栏 ----------
@@ -1234,9 +1256,15 @@ function render() {
   renderChip();
   $("result-hint").textContent = state.query.trim() ? `找到 ${sessions.length} 个会话` : "";
   renderTiles(sessions, projects);
-  renderChart(sessions);
-  renderHeat(sessions);
-  renderRanks(sessions);
+  const tg = $("charts-toggle");
+  $("charts").hidden = !state.charts;
+  tg.setAttribute("aria-expanded", String(state.charts));
+  tg.textContent = state.charts ? "收起图表" : "展开图表";
+  if (state.charts) {
+    renderChart(sessions);
+    renderHeat(sessions);
+    renderRanks(sessions);
+  }
   renderGroups(projects);
   renderDelBar();
 }
@@ -1250,6 +1278,7 @@ $("search").addEventListener("input", (e) => {
   clearTimeout(searchTimer);
   searchTimer = setTimeout(() => { state.query = e.target.value; render(); }, 120);
 });
+$("charts-toggle").addEventListener("click", () => { state.charts = !state.charts; persist(); render(); });
 $("mode-delete").addEventListener("click", () => setPicking(!state.picking));
 $("sort").addEventListener("change", (e) => { state.sort = e.target.value; persist(); render(); });
 $("table-toggle").addEventListener("click", (e) => {
@@ -1275,7 +1304,7 @@ document.addEventListener("keydown", (e) => {
   }
 });
 let resizeTimer;
-addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => renderChart(filtered()), 100); });
+addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { if (state.charts) renderChart(filtered()); }, 100); });
 
 renderHeader();
 render();
