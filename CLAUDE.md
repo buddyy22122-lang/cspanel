@@ -1,6 +1,6 @@
-# 项目 1：Claude 会话面板
+# 会话管理：Claude 会话面板
 
-笔记（目标、范围、使用说明）在 `Meddes/仓库/项目 1/`。
+笔记（目标、范围、使用说明）在 `Meddes/仓库/会话管理/`。
 
 ## 日常启动
 - 双击 `Claude 会话面板.app`：运行 `start.sh`，先 `python3 build.py` 重新生成 `dashboard.html`，再用 Chrome 独立窗口打开（file://，不需要服务器，不占端口）

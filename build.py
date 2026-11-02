@@ -15,6 +15,11 @@ CLAUDE_DIR = Path.home() / ".claude"
 PROJECTS_DIR = CLAUDE_DIR / "projects"
 LIVE_DIR = CLAUDE_DIR / "sessions"
 MEDDES_ROOT = str(Path.home() / "Documents" / "Meddes")
+# 文件夹改名后，旧会话记录里的路径还是旧名字；在这里写「旧路径 → 新路径」，面板里就合并成一个项目
+RENAMED = {
+    MEDDES_ROOT + "/项目 1": MEDDES_ROOT + "/会话管理",
+    MEDDES_ROOT + "/项目 3": MEDDES_ROOT + "/慈善家",
+}
 HERE = Path(__file__).resolve().parent
 TEMPLATE = HERE / "template.html"
 OUTPUT = HERE / "dashboard.html"
@@ -207,6 +212,7 @@ def main():
         s = read_session(path)
         if not s["cwd"] or (not s["prompts"] and s["replies"] == 0):
             continue
+        s["cwd"] = RENAMED.get(s["cwd"], s["cwd"])
         title = s["customTitle"] or s["aiTitle"] or s["firstPrompt"] or "（无标题）"
         tk = s["tokens"]
         sessions.append({
