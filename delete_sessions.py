@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-"""把指定的 Claude Code 会话移到废纸篓。由面板上的「复制删除命令」生成调用。
+"""把指定的 Claude Code 会话移到废纸篓（Windows 上是回收站）。由面板上的「复制删除命令」生成调用。
 
-用法：python3 delete_sessions.py <会话ID> [<会话ID> ...]
+用法：python3 delete_sessions.py <会话ID> [<会话ID> ...]    （Windows：python delete_sessions.py ...）
 - 正在运行的会话不会删除
 - 执行前列出要移走的文件，输入 y 才执行
-- 只移到废纸篓，可以从废纸篓放回原处
+- 只移到废纸篓/回收站，可以从里面放回原处
 """
+import ctypes
+import os
 import re
 import shutil
 import subprocess
@@ -42,7 +44,38 @@ def describe(sid, paths):
     return title, build.short_home(s["cwd"] or "")
 
 
+TRASH_NAME = "回收站" if build.IS_WINDOWS else "废纸篓"
+
+
+class SHFILEOPSTRUCTW(ctypes.Structure):
+    _fields_ = [
+        ("hwnd", ctypes.c_void_p),
+        ("wFunc", ctypes.c_uint),
+        ("pFrom", ctypes.c_wchar_p),
+        ("pTo", ctypes.c_wchar_p),
+        ("fFlags", ctypes.c_ushort),
+        ("fAnyOperationsAborted", ctypes.c_int),
+        ("hNameMappings", ctypes.c_void_p),
+        ("lpszProgressTitle", ctypes.c_wchar_p),
+    ]
+
+
+def move_to_recycle_bin(paths):
+    """Windows：用 Shell API 移到回收站（FO_DELETE + FOF_ALLOWUNDO），不依赖第三方包。"""
+    FO_DELETE, FOF_SILENT, FOF_NOCONFIRMATION, FOF_ALLOWUNDO, FOF_NOERRORUI = 3, 0x4, 0x10, 0x40, 0x400
+    op = SHFILEOPSTRUCTW()
+    op.wFunc = FO_DELETE
+    op.pFrom = "\0".join(os.path.abspath(p) for p in paths) + "\0\0"  # 路径之间用 \0 分隔，末尾两个 \0
+    op.fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION | FOF_SILENT | FOF_NOERRORUI
+    code = ctypes.windll.shell32.SHFileOperationW(ctypes.byref(op))
+    if code or op.fAnyOperationsAborted:
+        raise OSError(f"移到回收站失败（错误码 {code}）")
+
+
 def move_to_trash(paths):
+    if build.IS_WINDOWS:
+        move_to_recycle_bin(paths)
+        return
     if shutil.which("trash"):
         subprocess.run(["trash", *map(str, paths)], check=True)
         return
@@ -52,6 +85,8 @@ def move_to_trash(paths):
 
 
 def main(args):
+    if not sys.stdout.isatty():
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     if not args:
         print(__doc__)
         return 1
@@ -84,7 +119,7 @@ def main(args):
         print()
 
     try:
-        answer = input("确认移到废纸篓吗？输入 y 回车确认，直接回车取消：").strip().lower()
+        answer = input(f"确认移到{TRASH_NAME}吗？输入 y 回车确认，直接回车取消：").strip().lower()
     except EOFError:
         answer = ""
     if answer not in ("y", "yes", "是"):
@@ -95,14 +130,16 @@ def main(args):
     for sid, paths in todo:
         try:
             move_to_trash(paths)
-            print(f"✓ 已移到废纸篓：{sid[:8]}…")
+            print(f"✓ 已移到{TRASH_NAME}：{sid[:8]}…")
         except (subprocess.CalledProcessError, OSError) as e:
             failed += 1
             print(f"✗ 失败：{sid[:8]}… {e}")
 
     print("\n正在刷新面板数据…")
     build.main()
-    print("刷新浏览器里的面板（⌘R）就能看到变化。删错了可以去废纸篓里「放回原处」。")
+    refresh = "F5" if build.IS_WINDOWS else "⌘R"
+    restore = "还原" if build.IS_WINDOWS else "放回原处"
+    print(f"刷新浏览器里的面板（{refresh}）就能看到变化。删错了可以去{TRASH_NAME}里「{restore}」。")
     return 1 if failed else 0
 
 

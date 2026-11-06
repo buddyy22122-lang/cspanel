@@ -4,9 +4,11 @@
 只读：不修改、不删除任何会话文件，也不联网。
 用法：python3 build.py  然后打开 dashboard.html
 """
+import ctypes
 import glob
 import json
 import os
+import sys
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
@@ -14,13 +16,48 @@ from pathlib import Path
 CLAUDE_DIR = Path.home() / ".claude"
 PROJECTS_DIR = CLAUDE_DIR / "projects"
 LIVE_DIR = CLAUDE_DIR / "sessions"
-MEDDES_ROOT = str(Path.home() / "Documents" / "Meddes")
-# 文件夹改名后，旧会话记录里的路径还是旧名字；在这里写「旧路径 → 新路径」，面板里就合并成一个项目
-RENAMED = {
-    MEDDES_ROOT + "/项目 1": MEDDES_ROOT + "/会话管理",
-    MEDDES_ROOT + "/项目 3": MEDDES_ROOT + "/慈善家",
-}
+IS_WINDOWS = os.name == "nt"
+
+
+def norm_path(p):
+    """统一成正斜杠、去掉末尾斜杠；Windows 路径不区分大小写，一并转小写，只用来比较。"""
+    p = p.replace("\\", "/").rstrip("/")
+    return p.lower() if IS_WINDOWS else p
+
+
 HERE = Path(__file__).resolve().parent
+
+
+def load_config():
+    """读取可选的 config.json（已在 .gitignore 中），格式见 config.example.json。没有这个文件就全用默认值。"""
+    path = HERE / "config.json"
+    if not path.is_file():
+        return {}
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as e:
+        print(f"config.json 读取失败，已忽略：{e}", file=sys.stderr)
+        return {}
+
+
+def expand_path(p):
+    """~ 展开成主目录，统一成正斜杠。"""
+    return Path(p).expanduser().as_posix()
+
+
+CONFIG = load_config()
+# 单独成组的目录：路径在它下面的项目会放进「<groupName> 项目」分组；不配置就没有这个分组
+GROUP_ROOT = expand_path(CONFIG["groupRoot"]) if CONFIG.get("groupRoot") else None
+GROUP_NAME = CONFIG.get("groupName") or (Path(GROUP_ROOT).name if GROUP_ROOT else "")
+# 文件夹改名后，旧会话记录里的路径还是旧名字；写「旧路径 → 新路径」，面板里就合并成一个项目
+RENAMED = {expand_path(k): expand_path(v) for k, v in (CONFIG.get("renamed") or {}).items()}
+RENAMED_NORM = {norm_path(k): v for k, v in RENAMED.items()}
+
+
+def in_group(cwd):
+    root = norm_path(GROUP_ROOT) if GROUP_ROOT else None
+    return bool(root) and (norm_path(cwd) == root or norm_path(cwd).startswith(root + "/"))
+
 TEMPLATE = HERE / "template.html"
 OUTPUT = HERE / "dashboard.html"
 
@@ -78,9 +115,45 @@ def tool_summary(block):
         or inp.get("skill")
         or ""
     )
-    if isinstance(detail, str) and detail.startswith(str(Path.home())):
-        detail = "~" + detail[len(str(Path.home())):]
+    if isinstance(detail, str):
+        detail = short_home(detail) if norm_path(detail).startswith(norm_path(Path.home().as_posix()) + "/") else detail
     return name, clip(str(detail).replace("\n", " "), TOOL_SUMMARY_LIMIT)
+
+
+def _win_process_start(pid):
+    """Windows：进程还在运行就返回它的创建时间（FILETIME 整数），否则返回 None。"""
+    k32 = ctypes.windll.kernel32
+    k32.OpenProcess.restype = ctypes.c_void_p
+    handle = k32.OpenProcess(0x1000, False, pid)  # PROCESS_QUERY_LIMITED_INFORMATION
+    if not handle:
+        return None
+    try:
+        code = ctypes.c_ulong()
+        if not k32.GetExitCodeProcess(ctypes.c_void_p(handle), ctypes.byref(code)) or code.value != 259:  # STILL_ACTIVE
+            return None
+        created, _a, _b, _c = (ctypes.c_ulonglong() for _ in range(4))
+        if not k32.GetProcessTimes(ctypes.c_void_p(handle), *map(ctypes.byref, (created, _a, _b, _c))):
+            return None
+        return created.value
+    finally:
+        k32.CloseHandle(ctypes.c_void_p(handle))
+
+
+def process_alive(info):
+    """会话登记里的进程是否还活着。
+
+    Windows 上 os.kill(pid, 0) 会向进程发控制台信号而不是探测，所以改用 OpenProcess；
+    登记里有 procStart（进程创建时间）时一并比对，避免 PID 被别的进程复用而误判。
+    """
+    pid = int(info["pid"])
+    if not IS_WINDOWS:
+        os.kill(pid, 0)
+        return True
+    started = _win_process_start(pid)
+    if started is None:
+        return False
+    recorded = info.get("procStart")
+    return not (recorded and str(recorded).isdigit() and int(recorded) != started)
 
 
 def read_live_sessions():
@@ -89,8 +162,8 @@ def read_live_sessions():
     for path in glob.glob(str(LIVE_DIR / "*.json")):
         try:
             info = json.loads(Path(path).read_text(encoding="utf-8"))
-            pid = int(info["pid"])
-            os.kill(pid, 0)
+            if not process_alive(info):
+                continue
         except (OSError, ValueError, KeyError, json.JSONDecodeError):
             continue
         sid = info.get("sessionId")
@@ -201,24 +274,29 @@ def read_session(path):
 
 
 def short_home(p):
-    home = str(Path.home())
-    return "~" + p[len(home):] if p.startswith(home) else p
+    """路径开头的主目录换成 ~，并统一用正斜杠（Windows 的反斜杠会让界面里切文件名出错）。"""
+    p = p.replace("\\", "/")
+    home = Path.home().as_posix()
+    return "~" + p[len(home):] if norm_path(p).startswith(norm_path(home)) else p
 
 
 def main():
+    if not sys.stdout.isatty():  # 重定向到日志文件时统一用 UTF-8，免得 Windows 按 GBK 写出乱码
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     live = read_live_sessions()
     sessions = []
     for path in glob.glob(str(PROJECTS_DIR / "*" / "*.jsonl")):
         s = read_session(path)
         if not s["cwd"] or (not s["prompts"] and s["replies"] == 0):
             continue
-        s["cwd"] = RENAMED.get(s["cwd"], s["cwd"])
+        s["cwd"] = s["cwd"].replace("\\", "/")
+        s["cwd"] = RENAMED_NORM.get(norm_path(s["cwd"]), s["cwd"])
         title = s["customTitle"] or s["aiTitle"] or s["firstPrompt"] or "（无标题）"
         tk = s["tokens"]
         sessions.append({
             "id": s["id"],
             "project": s["cwd"],
-            "isMeddes": s["cwd"] == MEDDES_ROOT or s["cwd"].startswith(MEDDES_ROOT + "/"),
+            "inGroup": in_group(s["cwd"]),
             "title": title,
             "firstPrompt": s["firstPrompt"] or "",
             "prompts": s["prompts"],
@@ -247,9 +325,10 @@ def main():
 
     data = {
         "generatedAt": datetime.now().astimezone().isoformat(timespec="seconds"),
-        "home": str(Path.home()),
-        "toolDir": str(HERE),
-        "meddesRoot": MEDDES_ROOT,
+        "home": Path.home().as_posix(),
+        "toolDir": HERE.as_posix(),
+        "isWindows": IS_WINDOWS,
+        "groupName": GROUP_NAME if GROUP_ROOT else "",
         "sessions": sessions,
     }
     # 防止会话文本里的 </script> 提前结束脚本块

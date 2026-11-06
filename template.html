@@ -365,7 +365,7 @@ h2.section::before { content: "//"; font: 600 12px var(--mono); color: var(--ser
 h2.section::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--border-strong), transparent); }
 h2.section .count { color: var(--text-muted); font: 400 11px var(--mono); letter-spacing: .06em; order: 1; }
 .project { margin-bottom: 8px; overflow: hidden; }
-.project.meddes { box-shadow: inset 2px 0 0 var(--series-1), -4px 0 14px -6px var(--series-1); }
+.project.grouped { box-shadow: inset 2px 0 0 var(--series-1), -4px 0 14px -6px var(--series-1); }
 .project > summary {
   list-style: none; cursor: pointer; padding: 12px 20px 12px 36px; position: relative;
   display: grid; grid-template-columns: minmax(0, 1fr) 96px 76px 96px 64px 76px; gap: 16px; align-items: center;
@@ -738,7 +738,8 @@ async function copyText(text) {
     document.body.append(ta); ta.select(); document.execCommand("copy"); ta.remove();
   }
 }
-const deleteCmd = (ids) => `python3 ${JSON.stringify(DATA.toolDir + "/delete_sessions.py")} ${ids.join(" ")}`;
+const TRASH = DATA.isWindows ? "回收站" : "废纸篓";
+const deleteCmd = (ids) => `${DATA.isWindows ? "python" : "python3"} ${JSON.stringify(DATA.toolDir + "/delete_sessions.py")} ${ids.join(" ")}`;
 const resumeCmd = (s) => `cd ${JSON.stringify(s.project)} && claude --resume ${s.id}`;
 
 // 复制按钮；正在运行的会话需要点第二次确认
@@ -816,7 +817,7 @@ function filtered() {
 function groupByProject(sessions) {
   const map = new Map();
   for (const s of sessions) {
-    if (!map.has(s.project)) map.set(s.project, { path: s.project, isMeddes: s.isMeddes, sessions: [] });
+    if (!map.has(s.project)) map.set(s.project, { path: s.project, inGroup: s.inGroup, sessions: [] });
     map.get(s.project).sessions.push(s);
   }
   const list = [...map.values()];
@@ -884,9 +885,9 @@ function renderHeader() {
 }
 
 function renderTiles(sessions, projects) {
-  const meddes = projects.filter(p => p.isMeddes).length;
+  const grouped = projects.filter(p => p.inGroup).length;
   $("t-projects").textContent = projects.length;
-  $("t-projects-sub").textContent = `Meddes ${meddes} · 其他 ${projects.length - meddes}`;
+  $("t-projects-sub").textContent = DATA.groupName ? `${DATA.groupName} ${grouped} · 其他 ${projects.length - grouped}` : "有会话记录的项目";
   $("t-sessions").textContent = sessions.length;
   const liveN = sessions.filter(s => s.live).length;
   const weekAgo = Date.now() - 7 * 864e5;
@@ -1220,14 +1221,14 @@ function renderSession(s) {
 
 const openState = new Map();
 function renderProject(p, autoOpen) {
-  const det = el("details", "card project" + (p.isMeddes ? " meddes" : ""));
+  const det = el("details", "card project" + (p.inGroup ? " grouped" : ""));
   det.open = openState.has(p.path) ? openState.get(p.path) : autoOpen;
   det.addEventListener("toggle", () => openState.set(p.path, det.open));
   const sm = el("summary");
   const name = el("div", "name");
   const sp = shortPath(p.path), idx = sp.lastIndexOf("/");
   name.append(el("span", "parent", sp.slice(0, idx + 1)), highlight(el("span"), sp.slice(idx + 1), state.query.trim()));
-  if (p.isMeddes) name.append(el("span", "badge", "Meddes"));
+  if (p.inGroup) name.append(el("span", "badge", DATA.groupName));
   name.title = p.path;
   sm.append(name);
   const stat = (n, label, cls = "") => { const s = el("span", "stat num " + cls); s.append(el("b", null, String(n)), document.createTextNode(" " + label)); return s; };
@@ -1245,14 +1246,16 @@ function renderGroups(projects) {
   const box = $("groups");
   box.replaceChildren();
   const searching = !!state.query.trim() || !!state.project;
-  const groups = [["Meddes 项目", projects.filter(p => p.isMeddes)], ["其他项目", projects.filter(p => !p.isMeddes)]];
+  const groups = DATA.groupName
+    ? [[`${DATA.groupName} 项目`, projects.filter(p => p.inGroup)], ["其他项目", projects.filter(p => !p.inGroup)]]
+    : [["项目", projects]];
   for (const [title, list] of groups) {
     if (searching && !list.length) continue;
     const h = el("h2", "section", title);
     h.append(el("span", "count", `${list.length} 个项目 · ${sum(list, p => p.sessions.length)} 个会话`));
     box.append(h);
     if (!list.length) { box.append(emptyBox("这个时间范围内没有会话。")); continue; }
-    for (const p of list) box.append(renderProject(p, p.isMeddes || searching));
+    for (const p of list) box.append(renderProject(p, p.inGroup || searching));
   }
   if (searching && !projects.length) box.append(emptyBox("没有找到匹配的会话。"));
 }
@@ -1297,7 +1300,7 @@ function openDrawer(id) {
   );
   const del = copyButton("复制删除命令", () => deleteCmd([s.id]));
   del.classList.add("danger");
-  del.title = "复制后粘贴到终端回车。终端里会先列出要移走的文件，输入 y 才会移到废纸篓";
+  del.title = `复制后粘贴到终端回车。终端里会先列出要移走的文件，输入 y 才会移到${TRASH}`;
   if (s.live) { del.disabled = true; del.title = "正在运行的会话不能删除，先在那个窗口退出 Claude"; }
   actions.append(del);
 
@@ -1414,7 +1417,7 @@ function renderDelBar() {
   const copy = copyButton(`复制删除命令`, () => deleteCmd(ids));
   copy.classList.add("primary");
   copy.disabled = !n;
-  bar.append(copy, el("span", "hint", n ? "粘贴到终端回车，确认后移到废纸篓" : "点会话来勾选；运行中的不能选"));
+  bar.append(copy, el("span", "hint", n ? `粘贴到终端回车，确认后移到${TRASH}` : "点会话来勾选；运行中的不能选"));
   const clear = el("button", null, "清空"); clear.type = "button"; clear.disabled = !n;
   clear.addEventListener("click", () => { state.picked.clear(); render(); });
   const exit = el("button", null, "退出"); exit.type = "button";
